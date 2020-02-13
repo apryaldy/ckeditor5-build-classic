@@ -1,12 +1,13 @@
 /**
- * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.md.
+ * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 /* globals document */
 
 import ClassicEditor from '../src/ckeditor';
 import BaseClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
+import { describeMemoryUsage, testMemoryUsage } from '@ckeditor/ckeditor5-core/tests/_utils/memory';
 
 describe( 'ClassicEditor build', () => {
 	let editor, editorElement;
@@ -23,13 +24,13 @@ describe( 'ClassicEditor build', () => {
 		editor = null;
 	} );
 
-	describe( 'buid', () => {
+	describe( 'build', () => {
 		it( 'contains plugins', () => {
-			expect( ClassicEditor.build.plugins ).to.not.be.empty;
+			expect( ClassicEditor.builtinPlugins ).to.not.be.empty;
 		} );
 
 		it( 'contains config', () => {
-			expect( ClassicEditor.build.config.toolbar ).to.not.be.empty;
+			expect( ClassicEditor.defaultConfig.toolbar ).to.not.be.empty;
 		} );
 	} );
 
@@ -73,11 +74,11 @@ describe( 'ClassicEditor build', () => {
 		} );
 
 		it( 'restores the editor element', () => {
-			expect( editor.element.style.display ).to.equal( 'none' );
+			expect( editor.sourceElement.style.display ).to.equal( 'none' );
 
 			return editor.destroy()
 				.then( () => {
-					expect( editor.element.style.display ).to.equal( '' );
+					expect( editor.sourceElement.style.display ).to.equal( '' );
 				} );
 		} );
 	} );
@@ -136,7 +137,7 @@ describe( 'ClassicEditor build', () => {
 		} );
 
 		it( 'image works', () => {
-			const data = '<figure class="image"><img src="./manual/sample.jpg"></figure>';
+			const data = '<figure class="image"><img src="/assets/sample.png"></figure>';
 
 			editor.setData( data );
 			expect( editor.getData() ).to.equal( data );
@@ -172,7 +173,7 @@ describe( 'ClassicEditor build', () => {
 		} );
 
 		// https://github.com/ckeditor/ckeditor5/issues/572
-		it( 'allows configure toolbar items through config.toolbar', () => {
+		it( 'allows configuring toolbar items through config.toolbar', () => {
 			return ClassicEditor
 				.create( editorElement, {
 					toolbar: [ 'bold' ]
@@ -185,7 +186,7 @@ describe( 'ClassicEditor build', () => {
 		} );
 
 		// https://github.com/ckeditor/ckeditor5/issues/572
-		it( 'allows configure toolbar offset without overriding toolbar items', () => {
+		it( 'allows configuring toolbar offset without overriding toolbar items', () => {
 			return ClassicEditor
 				.create( editorElement, {
 					toolbar: {
@@ -195,9 +196,15 @@ describe( 'ClassicEditor build', () => {
 				.then( newEditor => {
 					editor = newEditor;
 
-					expect( editor.ui.view.toolbar.items.length ).to.equal( 9 );
+					expect( editor.ui.view.toolbar.items.length ).to.equal( 17 );
 					expect( editor.ui.view.stickyPanel.viewportTopOffset ).to.equal( 42 );
 				} );
 		} );
+	} );
+
+	describeMemoryUsage( () => {
+		testMemoryUsage(
+			'should not grow on multiple create/destroy',
+			() => ClassicEditor.create( document.querySelector( '#mem-editor' ) ) );
 	} );
 } );
